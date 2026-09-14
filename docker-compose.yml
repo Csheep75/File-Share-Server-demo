@@ -1,0 +1,42 @@
+services:
+  # ==================== Dufs 文件服务器 ====================
+  dufs:
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/sigoden/dufs:v0.45.0
+    container_name: file-dufs
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./dufs/data:/data
+    command: /data -A --enable-cors
+    environment:
+      - TZ=Asia/Shanghai
+    networks:
+      - file-share-net
+
+  # ==================== MySQL 数据库 ====================
+  mysql:
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/mysql:8.4.0
+    container_name: file-mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=Root@2026!
+      - MYSQL_DATABASE=fileshare
+      - MYSQL_USER=fileshare
+      - MYSQL_PASSWORD=FileShare@2026!
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-pRoot@2026!"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - file-share-net
+
+networks:
+  file-share-net:
+    driver: bridge
