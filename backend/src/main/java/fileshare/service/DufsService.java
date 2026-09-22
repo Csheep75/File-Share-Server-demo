@@ -324,14 +324,14 @@ public class DufsService {
     }
 
     private FileEntry toEntry(String currentPath, Map<?, ?> node) {
-        String name = firstText(node, "name", "path", "href");
-        if (name == null) {
-            name = "unknown";
+        String relative = firstText(node, "name", "path", "href");
+        if (relative == null) {
+            relative = "unknown";
         }
-        name = name.replaceAll("/+$", "");
-        if (name.contains("/")) {
-            name = PathUtils.fileName(name);
-        }
+        relative = relative.replaceAll("/+$", "");
+        // dufs 的搜索结果里 name 形如 "sub/nested.txt"：展示名只取最后一级，
+        // 但计算完整路径时必须保留目录层级，否则子目录下的搜索结果会指向错误路径。
+        String name = relative.contains("/") ? PathUtils.fileName(relative) : relative;
         String kind = String.valueOf(value(node, "kind", ""));
         String pathType = String.valueOf(value(node, "path_type", ""));
         boolean directory = Boolean.parseBoolean(String.valueOf(value(node, "is_dir", false)))
@@ -356,7 +356,7 @@ public class DufsService {
         if (href != null && href.startsWith("/")) {
             path = PathUtils.normalize(href);
         } else {
-            path = PathUtils.join(currentPath, name);
+            path = PathUtils.resolveRelative(currentPath, relative);
         }
         return new FileEntry(name, path, directory, size, mtime == null ? "" : mtime);
     }

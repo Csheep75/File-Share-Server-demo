@@ -56,6 +56,22 @@ public final class PathUtils {
         return dir + "/" + safeName;
     }
 
+    /**
+     * 将一个可能包含多级目录的相对路径拼接到基路径上。
+     * dufs 的搜索结果里 name 形如 "sub/nested.txt"，必须用本方法而不是 {@link #join}。
+     */
+    public static String resolveRelative(String base, String relative) {
+        String normalizedBase = normalize(base);
+        String normalizedRelative = normalize(relative);
+        if ("/".equals(normalizedBase)) {
+            return normalizedRelative;
+        }
+        if ("/".equals(normalizedRelative)) {
+            return normalizedBase;
+        }
+        return normalizedBase + normalizedRelative;
+    }
+
     public static String encodePath(String path) {
         String normalized = normalize(path);
         if ("/".equals(normalized)) {
@@ -65,6 +81,13 @@ public final class PathUtils {
                 .filter(part -> !part.isBlank())
                 .map(part -> URLEncoder.encode(part, StandardCharsets.UTF_8).replace("+", "%20"))
                 .collect(Collectors.joining("/", "/", ""));
+    }
+
+    /**
+     * 对 URL 查询参数做百分号编码（空格编码为 %20 而不是 +）。
+     */
+    public static String encodeQueryValue(String value) {
+        return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8).replace("+", "%20");
     }
 
     public static boolean isDirectoryPath(String path) {

@@ -11,4 +11,8 @@ public interface ShareLinkRepository extends JpaRepository<ShareLink, Long> {
     Optional<ShareLink> findByToken(String token);
 
     List<ShareLink> findTop20ByOrderByCreatedAtDesc();
+
+    List<ShareLink> findTop20ByPathStartingWithOrderByCreatedAtDesc(String pathPrefix);
+
+    long countByPathStartingWith(String pathPrefix);
 }
